@@ -27,20 +27,43 @@ class BplusTree():
                                 self.splite(data)
 
                     else:
-                        if data > self.root.leaf[0]:
-                            self.root.ptr[1].data.append(data)
-                            if len(self.root.ptr[1].data) > 1:
-                                self.root.ptr[1].data.sort()
-                            if len(self.root.ptr[1].data) == self.D:
-                                data = copy.copy(self.root.ptr[1].data)
-                                self.splite(data)
+                        if type(self.root.ptr[0]) == ExternalNode:
+                            if data > self.root.leaf[0]:
+                                self.root.ptr[1].data.append(data)
+                                if len(self.root.ptr[1].data) > 1:
+                                    self.root.ptr[1].data.sort()
+                                if len(self.root.ptr[1].data) == self.D:
+                                    data = copy.copy(self.root.ptr[1].data)
+                                    self.splite(data)
+                            else:
+                                self.root.ptr[0].data.append(data)
+                                if len(self.root.ptr[0].data) > 1:
+                                    self.root.ptr[0].data.sort()
+                                if len(self.root.ptr[0].data) == self.D:
+                                    data = copy.copy(self.root.ptr[0].data)
+                                    self.splite(data)
                         else:
-                            self.root.ptr[0].data.append(data)
-                            if len(self.root.ptr[0].data) > 1:
-                                self.root.ptr[0].data.sort()
-                            if len(self.root.ptr[0].data) == self.D:
-                                data = copy.copy(self.root.ptr[0].data)
-                                self.splite(data)
+                            if data < self.root.leaf[0]:
+                                pass
+                            else:
+                                if len(self.root.ptr[1].leaf) > 1:
+                                    pass
+                                else:
+                                    if data > self.root.ptr[1].leaf[0]:
+                                        self.root.ptr[1].ptr[1].data.append(data)
+                                        if len(self.root.ptr[1].ptr[1].data) > 1:
+                                            self.root.ptr[1].ptr[1].data.sort()
+                                        if len(self.root.ptr[1].ptr[1].data) == self.D:
+                                            data = copy.copy(self.root.ptr[1].ptr[1].data)
+                                            self.splite(data)
+                                    else:
+                                        self.root.ptr[0].data.append(data)
+                                        if len(self.root.ptr[0].data) > 1:
+                                            self.root.ptr[0].data.sort()
+                                        if len(self.root.ptr[0].data) == self.D:
+                                            data = copy.copy(self.root.ptr[0].data)
+                                            self.splite(data)
+
                     break
                 else:
                     self.root.data.append(data)
@@ -56,7 +79,10 @@ class BplusTree():
     def print(self):
         print(self.root.leaf)
         for d in range(len(self.root.ptr)):
-            print(self.root.ptr[d].data)
+            print(self.root.ptr[d].leaf,"leaf")
+            for y in range(len(self.root.ptr[d].ptr)):
+                print(self.root.ptr[d].ptr[y].data,"data")
+
 
     def delete(self):
         pass
@@ -79,18 +105,41 @@ class BplusTree():
                 self.root.ptr[0].ptr=self.root.ptr[1]
                 self.leaf = self.root.ptr[0]
             else:
-                for d in range(len(self.root.ptr)):
-                    if len(self.root.ptr[d].data) == self.D:
-                        if len(self.root.ptr) != 3:
-                            self.root.leaf.append(data[int((self.D / 2))])
-                            self.root.ptr.append(ExternalNode())
-                            self.root.ptr[d+1].data = copy.copy(self.root.ptr[1].data)
-                            self.root.ptr[d].data.clear()
-                            self.root.ptr[d].data.append(data[int((self.D / 2))-1])
-                            self.root.ptr[d+1].data.remove(data[int((self.D / 2))-1])
-                            self.root.ptr[d].ptr = self.root.ptr[d+1]
-                        else:
-                            pass
+                if type(self.root.ptr[0]) == ExternalNode:
+                    for d in range(len(self.root.ptr)):
+                        if len(self.root.ptr[d].data) == self.D:
+                            if len(self.root.ptr) != 3:
+                                self.root.leaf.append(data[int((self.D / 2))])
+                                self.root.ptr.append(ExternalNode())
+                                self.root.ptr[d+1].data = copy.copy(self.root.ptr[1].data)
+                                self.root.ptr[d].data.clear()
+                                self.root.ptr[d].data.append(data[int((self.D / 2))-1])
+                                self.root.ptr[d+1].data.remove(data[int((self.D / 2))-1])
+                                self.root.ptr[d].ptr = self.root.ptr[d+1]
+                            else:
+                                self.root.leaf.append(data[int((self.D / 2))])
+                                self.root.ptr[d].data.remove(data[int((self.D / 2)) - 1])
+                                if len(self.root.leaf) == self.D:
+                                    tmp = InternalNode()
+                                    tmp.leaf.append(data[int((self.D / 2))-1])
+                                    tmp.ptr.append(InternalNode())
+                                    for d in range(self.D):
+                                        if d == int((self.D / 2)):
+                                            break
+                                        tmp.ptr[0].leaf.append(self.root.leaf[d])
+                                    tmp.ptr[0].ptr.append(self.root.ptr[0])
+                                    tmp.ptr[0].ptr.append(self.root.ptr[1])
+                                    tmp.ptr.append(InternalNode())
+                                    for d in range(self.D):
+                                        if d != int((self.D / 2)):
+                                            continue
+                                        tmp.ptr[1].leaf.append(self.root.leaf[d]+1)
+                                    tmp.ptr[1].ptr.append(ExternalNode())
+                                    tmp.ptr[1].ptr[0].data.append(data[int((self.D / 2))-1])
+                                    tmp.ptr[1].ptr.append(self.root.ptr[2])
+                                    self.root = tmp
+                else:
+                    print(data)
         else:
             if type(self.root) == ExternalNode:
                 self.root = InternalNode()
