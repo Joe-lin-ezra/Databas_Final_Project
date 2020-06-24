@@ -55,7 +55,7 @@ class BplusTree():
 
     def print(self):
         print(self.root.leaf)
-        for d in range(3):
+        for d in range(len(self.root.ptr)):
             print(self.root.ptr[d].data)
 
     def delete(self):
@@ -76,6 +76,8 @@ class BplusTree():
                     if d < int((self.D / 2)):
                         continue
                     self.root.ptr[1].data.append(data[d])
+                self.root.ptr[0].ptr=self.root.ptr[1]
+                self.leaf = self.root.ptr[0]
             else:
                 for d in range(len(self.root.ptr)):
                     if len(self.root.ptr[d].data) == self.D:
@@ -86,6 +88,7 @@ class BplusTree():
                             self.root.ptr[d].data.clear()
                             self.root.ptr[d].data.append(data[int((self.D / 2))-1])
                             self.root.ptr[d+1].data.remove(data[int((self.D / 2))-1])
+                            self.root.ptr[d].ptr = self.root.ptr[d+1]
                         else:
                             pass
         else:

@@ -3,7 +3,7 @@
 import csv
 
 #寫檔部分
-with open('Test.csv','w',newline='') as csvFile:
+with open('../data/Test.csv','w',newline='') as csvFile:
     Attribute = ['No.','StudentNo.','Class','CourseChineseName','Ptr']    # 設定csv 裡的欄位標題
 
     writer = csv.DictWriter(csvFile,fieldnames=Attribute,delimiter=' ')          # 寫入Dictionary 至 csv 檔裡
@@ -13,7 +13,7 @@ with open('Test.csv','w',newline='') as csvFile:
     writer.writerow({'No.': '1', 'StudentNo.': 'D0001', 'Class': '1A','CourseChineseName':'中文科','Ptr':0})           #寫入測試資訊
 
 #讀檔部分
-with open('Test.csv', newline='') as csvFile:
+with open('../data/Test.csv', newline='') as csvFile:
     reader = csv.DictReader(csvFile,fieldnames=Attribute,delimiter=' ')
 
     for read in reader:
