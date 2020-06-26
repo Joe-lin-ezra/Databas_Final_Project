@@ -67,22 +67,34 @@ class Procedure ():
 
 
     def Insert(self):
-        writer = csv.writer(open('../data/OutputTest.csv', 'w', newline='',encoding="utf-8"))
-        TotalLine = self.GetTotalLine()
-        InsertToLine = TotalLine + 1
-        print('Total Line:', TotalLine, ';', 'InsertLine:', InsertToLine)
-        writer.writerow(['No.', "student_id", 'course_id', 'course_name', 'ptr'])
-        InsertToNumber = InsertToLine - 2
-        self.PtrRelocation(TotalLine, InsertToNumber)
+        # 從未排序的File中取得最後的號碼(LastDataNumber)
+        UnSortingFile = csv.reader(open('../data/copy.csv', newline='', encoding='utf-8'))
+        LastDataNumber = 0
+        for i in UnSortingFile:
+            LastDataNumber = i[0]
+        open('../data/copy.csv').close()
+
+        # 透過已知最後的號碼來加插新的資料於下一行
+        with open('../data/copy.csv', 'a', newline='', encoding='utf-8') as File:
+            OverWrite = csv.writer(File)
+            InsertToNumber = int(LastDataNumber) + 1
+            data = [InsertToNumber, self.StdID, self.CourseID, self.CourseName_C,0]
+            OverWrite.writerow(data)
+        open('../data/copy.csv').close()
+
+        # Pointer Distribution
+        self.PtrRelocation()
+
+        # Sortting
         self.SortingByStudentID()
-        print('Insert Success!')
+
+        print("Insert Done!")
         pass
 
     def SortingByStudentID(self):
         File = csv.reader(open('../data/copy.csv',encoding="utf-8"))
         writer = csv.writer(open('../data/OutputTest.csv','w',newline='',encoding="utf-8"))
         OutputFile = sorted(File,key=itemgetter(1))
-        # print(OutputFile)
         for i in OutputFile:
             if i[0].isnumeric():
                 writer.writerow(i)
@@ -91,51 +103,54 @@ class Procedure ():
 
     def GetTotalLine(self):
         Count = 0
-        with open('../data/copy.csv',newline='',encoding="utf-8")as csvFile:
-            Attribute = ['No.',"student_id",'course_id','course_name','ptr']
-            reader = csv.DictReader(csvFile,fieldnames=Attribute,delimiter=',')
-            for read in reader:
-                Count += 1
+        File = csv.reader(open('../data/copy.csv', newline='', encoding='utf-8'))
+        for i in File:
+            Count+=1
         return Count
 
-    def PtrRelocation(self,TotalLine,InsertToNumber):
+    def PtrRelocation(self):
+        # 取得TotalLine(總行數)
+        TotalLine = self.GetTotalLine()
         File = csv.reader(open('../data/copy.csv',encoding="utf-8"))
         Line = [line for line in File]
         # Modify Part
-        for i in range(TotalLine):
+        for i in range(0,TotalLine):
             if Line[i][4].isnumeric():
-                Line[i][4] = i+1
-        with open('../data/OutputTest.csv', 'w+', newline='',encoding="utf-8") as csvFile:
+                if i+2 <= TotalLine:
+                    Line[i][4] = i+2
+        with open('../data/copy.csv', 'w', newline='',encoding="utf-8") as csvFile:
             writer = csv.writer(csvFile)
             for line in Line:
                 if line[0].isnumeric():
                     writer.writerow(line)
-                    writer.writerow([InsertToNumber + 1, self.StdID, self.CourseID, self.CourseName_C, 'Null'])
-        csvFile.close()
-        # with open('../data/OutputTest.csv','a+',newline='',encoding="utf-8") as csvFile:
-        #     writer = csv.writer(csvFile)
-        #
-        # csvFile.close()
         pass
 
 
     def Delete(self,StdID,CourseID):
-        File = csv.reader(open('../data/OutputTest.csv',encoding="utf-8"))
+        # 讀取未排序的資料
+        File = csv.reader(open('../data/copy.csv', encoding="utf-8"))
         Line = [line for line in File]
         Found = 0
         count = 0
-        PointingToTarget = 0
-        writer = csv.writer(open('../data/OutputTest.csv','w',newline='',encoding="utf-8"))
+        PointingToTarget = 0            # 繼承del 位置的資料所指向的位置
         for i in Line:
-            if i[1] == StdID and i[2] == CourseID:                  # 1 = stdID , 2 = CourseID
-                PointingToTarget = i[0]                             # 0 = No.
+            if i[1] == StdID and i[2] == CourseID:
+                PointingToTarget = i[0]
                 break
-        # Relocation Pointer
-        for i in Line:
-            if i[1] != StdID and i[2] != CourseID:
-                if i[4] != PointingToTarget:                        # 5 = Ptr
-                    writer.writerow(i)
-            else:
-                Line[count-1][4] = Line[count][4]
-                writer.writerow(Line[count-1])
-            count += 1
+
+        # 重新載入資料(清除的不會被載入)
+        with open('../data/copy.csv','w',newline='',encoding='utf-8') as csvFile:
+            Writer = csv.writer(csvFile)
+            for i in Line:
+                if i[1] != StdID and i[2] != CourseID:
+                    if i[4] != PointingToTarget:
+                        Writer.writerow(i)
+                else:
+                    Line[count-1][4] = Line[count][4]
+                    Writer.writerow(Line[count-1])
+                count += 1
+
+        #輸出到OutputTest 的介面中
+        self.SortingByStudentID()
+
+        print("Deletion Complete!")
