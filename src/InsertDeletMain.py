@@ -49,4 +49,4 @@ if __name__ == '__main__':
                 break
 
         Process = InsertDeleteClass.Procedure(StdID=StdID,CourseID=CourseID)
-        Process.Delete()
+        Process.Delete(StdID,CourseID)
