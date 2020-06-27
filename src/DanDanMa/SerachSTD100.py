@@ -1,4 +1,3 @@
-import pandas as pd
 
 def search(ID):
     counter = 0
@@ -27,5 +26,3 @@ def search(ID):
 
     file.close()
     return title, content
-
-print(search('D099995294'))
